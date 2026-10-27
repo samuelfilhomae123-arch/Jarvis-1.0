@@ -1,0 +1,533 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>J.A.R.V.I.S. System OS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Global Styles & Variables */
+    :root {
+      --cyan-neon: #00f3ff;
+      --cyan-glow: rgba(0, 243, 255, 0.4);
+      --gold-arc: #ffb700;
+      --bg-dark: #050b14;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      font-family: 'Rajdhani', sans-serif;
+      color: #a0c4df;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    .font-hud {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    /* Sci-Fi Grid Overlay */
+    .bg-grid {
+      background-size: 30px 30px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+    }
+
+    /* Glow Effects */
+    .glow-cyan {
+      box-shadow: 0 0 15px var(--cyan-glow), inset 0 0 10px rgba(0, 243, 255, 0.2);
+    }
+
+    .text-glow-cyan {
+      text-shadow: 0 0 8px rgba(0, 243, 255, 0.7), 0 0 15px rgba(0, 243, 255, 0.4);
+    }
+
+    .text-glow-gold {
+      text-shadow: 0 0 8px rgba(255, 183, 0, 0.7), 0 0 15px rgba(255, 183, 0, 0.4);
+    }
+
+    /* HUD Corner Borders */
+    .hud-border {
+      position: relative;
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      background: rgba(5, 15, 30, 0.65);
+      backdrop-filter: blur(10px);
+    }
+
+    .hud-border::before, .hud-border::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-color: var(--cyan-neon);
+      border-style: solid;
+    }
+
+    .hud-border::before {
+      top: -1px; left: -1px;
+      border-width: 2px 0 0 2px;
+    }
+
+    .hud-border::after {
+      bottom: -1px; right: -1px;
+      border-width: 0 2px 2px 0;
+    }
+
+    /* Arc Reactor Animations */
+    @keyframes spinClockwise {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes spinCounterClockwise {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(-360deg); }
+    }
+
+    @keyframes reactorPulse {
+      0%, 100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px rgba(0, 243, 255, 0.5); }
+      50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 35px rgba(0, 243, 255, 0.9); }
+    }
+
+    @keyframes speakingPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 25px rgba(255, 183, 0, 0.6); }
+      50% { transform: scale(1.12); box-shadow: 0 0 50px rgba(255, 183, 0, 1); }
+    }
+
+    .animate-spin-fast {
+      animation: spinClockwise 6s linear infinite;
+    }
+
+    .animate-spin-reverse {
+      animation: spinCounterClockwise 10s linear infinite;
+    }
+
+    .arc-reactor {
+      animation: reactorPulse 3s infinite ease-in-out;
+    }
+
+    .arc-reactor.speaking {
+      animation: speakingPulse 1.2s infinite ease-in-out !important;
+      border-color: var(--gold-arc) !important;
+    }
+
+    /* Custom Scrollbar for Chat */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(0, 243, 255, 0.3);
+      border-radius: 2px;
+    }
+
+    /* Scanline effect */
+    .scanline {
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0, 243, 255, 0.05) 50%,
+        rgba(0, 243, 255, 0.05)
+      );
+      background-size: 100% 4px;
+    }
+  </style>
+</head>
+<body class="bg-grid scanline min-h-screen flex flex-col justify-between p-2 sm:p-4 select-none">
+
+  <!-- TOP HEADER: HUD Clock & System Info -->
+  <header class="hud-border rounded-lg p-3 mb-3 flex justify-between items-center z-10">
+    <div>
+      <div class="flex items-center space-x-2">
+        <span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+        <h1 class="font-hud text-lg sm:text-xl font-bold tracking-widest text-cyan-400 text-glow-cyan">J.A.R.V.I.S.</h1>
+      </div>
+      <p class="text-xs text-cyan-600 font-mono tracking-wider">MARK VII - OS V3.1</p>
+    </div>
+
+    <!-- Clock -->
+    <div class="text-right">
+      <div id="hud-clock" class="font-hud text-base sm:text-lg font-semibold text-cyan-300 text-glow-cyan">00:00:00</div>
+      <div id="hud-date" class="text-xs text-slate-400 font-mono">00/00/0000</div>
+    </div>
+  </header>
+
+  <!-- CENTER AREA: ARC Reactor & Status Display -->
+  <main class="flex-1 flex flex-col items-center justify-center relative my-2 z-10">
+    
+    <!-- Arc Reactor Visualization -->
+    <div class="relative w-44 h-44 sm:w-52 sm:h-52 flex items-center justify-center my-2 cursor-pointer" onclick="toggleListening()">
+      <!-- Outer Rotating Ring -->
+      <div class="absolute inset-0 rounded-full border-2 border-dashed border-cyan-500/40 animate-spin-fast"></div>
+      
+      <!-- Inner Reverse Rotating Ring -->
+      <div class="absolute inset-2 rounded-full border-2 border-cyan-400/30 animate-spin-reverse" style="border-top-color: var(--cyan-neon); border-bottom-color: var(--cyan-neon);"></div>
+      
+      <!-- Triangular Core Housing -->
+      <div id="arc-core-outer" class="arc-reactor w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-cyan-400 bg-cyan-950/40 flex items-center justify-center glow-cyan transition-all duration-300">
+        <!-- Core Center Icon -->
+        <div id="arc-core-inner" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-cyan-400/20 border-2 border-cyan-300 flex items-center justify-center">
+          <i id="reactor-icon" class="fa-solid fa-microphone text-2xl sm:text-3xl text-cyan-300 transition-all duration-300"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Status Label -->
+    <div class="text-center mt-2">
+      <div id="status-badge" class="inline-block px-3 py-1 rounded-full text-xs font-hud tracking-widest bg-cyan-950/80 border border-cyan-500/40 text-cyan-300">
+        SISTEMA PRONTO
+      </div>
+    </div>
+  </main>
+
+  <!-- CHAT AREA -->
+  <section class="hud-border rounded-lg p-3 mb-3 flex-1 max-h-56 sm:max-h-64 flex flex-col z-10">
+    <div class="flex items-center justify-between border-b border-cyan-500/20 pb-1.5 mb-2">
+      <span class="text-xs font-hud text-cyan-400 flex items-center gap-2">
+        <i class="fa-solid fa-terminal text-cyan-500"></i> CANAL DE COMUNICAÇÃO
+      </span>
+      <button onclick="clearChat()" class="text-xs text-slate-500 hover:text-cyan-400 transition-colors">
+        <i class="fa-solid fa-trash-can"></i> Limpar
+      </button>
+    </div>
+
+    <!-- Scrollable Chat Messages -->
+    <div id="chat-box" class="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1 text-sm font-sans">
+      <div class="bg-cyan-950/40 border border-cyan-500/20 rounded p-2 text-cyan-200 text-xs sm:text-sm">
+        <span class="font-hud font-bold text-cyan-400">J.A.R.V.I.S.:</span> Olá, Senhor. Todos os sistemas estão operando dentro dos parâmetros normais. Como posso ajudar hoje?
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTROLS & INPUT SECTION -->
+  <footer class="z-10 space-y-2">
+    <!-- Input Form -->
+    <form id="input-form" onsubmit="handleUserSubmit(event)" class="flex gap-2">
+      <input 
+        type="text" 
+        id="user-input" 
+        placeholder="Digite seu comando..." 
+        class="flex-1 bg-slate-950/80 border border-cyan-500/40 rounded-lg px-3 py-2 text-sm text-cyan-100 placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 font-sans"
+        autocomplete="off"
+      >
+      <button 
+        type="submit" 
+        class="bg-cyan-950 border border-cyan-500/50 text-cyan-300 hover:bg-cyan-900 px-4 py-2 rounded-lg text-sm font-hud transition-all active:scale-95 flex items-center justify-center"
+      >
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+      <button 
+        type="button" 
+        id="mic-btn"
+        onclick="toggleListening()" 
+        class="bg-cyan-500 text-slate-950 hover:bg-cyan-400 font-bold px-4 py-2 rounded-lg text-sm font-hud transition-all active:scale-95 shadow-lg shadow-cyan-500/30 flex items-center justify-center"
+      >
+        <i class="fa-solid fa-microphone"></i>
+      </button>
+    </form>
+
+    <!-- Collapsible Settings Panel for API Key -->
+    <details class="group hud-border rounded-lg text-xs">
+      <summary class="p-2 cursor-pointer text-slate-400 font-hud hover:text-cyan-300 flex justify-between items-center">
+        <span><i class="fa-solid fa-sliders text-cyan-500 mr-1"></i> CONFIGURAÇÕES DE IA (GEMINI)</span>
+        <i class="fa-solid fa-chevron-down group-open:rotate-180 transition-transform"></i>
+      </summary>
+      <div class="p-3 border-t border-cyan-500/20 space-y-2 bg-slate-950/60">
+        <p class="text-slate-400 text-[11px]">
+          Para usar inteligência avançada sem limites pré-programados, insira sua chave gratuita da API Gemini abaixo.
+        </p>
+        <div class="flex gap-2">
+          <input 
+            type="password" 
+            id="api-key-input" 
+            placeholder="Cole sua Gemini API Key aqui..." 
+            class="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-cyan-200 focus:outline-none focus:border-cyan-400"
+          >
+          <button 
+            type="button" 
+            onclick="saveApiKey()" 
+            class="bg-cyan-900 text-cyan-200 border border-cyan-500/40 px-3 py-1 rounded hover:bg-cyan-800 transition-colors"
+          >
+            Salvar
+          </button>
+        </div>
+        <div id="key-status" class="text-[10px] text-cyan-400/80 italic">Modo atual: Respostas locais (Sem API Key)</div>
+      </div>
+    </details>
+  </footer>
+
+  <!-- JAVASCRIPT CORE LOGIC -->
+  <script>
+    // System State Variables
+    let apiKey = localStorage.getItem('jarvis_gemini_key') || '';
+    let isListening = false;
+    let isSpeaking = false;
+    let recognition = null;
+    let synth = window.speechSynthesis;
+
+    // DOM Elements
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const statusBadge = document.getElementById('status-badge');
+    const reactorCore = document.getElementById('arc-core-outer');
+    const reactorIcon = document.getElementById('reactor-icon');
+    const keyStatus = document.getElementById('key-status');
+    const apiKeyInput = document.getElementById('api-key-input');
+
+    // Initialize Page
+    window.onload = function() {
+      updateClock();
+      setInterval(updateClock, 1000);
+      setupSpeechRecognition();
+      checkApiKey();
+    };
+
+    // Clock & Date Function
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('hud-clock').textContent = now.toLocaleTimeString('pt-BR');
+      document.getElementById('hud-date').textContent = now.toLocaleDateString('pt-BR');
+    }
+
+    // Save and Manage API Key
+    function saveApiKey() {
+      const key = apiKeyInput.value.trim();
+      if (key) {
+        localStorage.setItem('jarvis_gemini_key', key);
+        apiKey = key;
+        keyStatus.textContent = "Modo atual: Conectado à API Gemini";
+        keyStatus.className = "text-[10px] text-green-400 font-semibold";
+        addMessage("J.A.R.V.I.S.", "Chave de API configurada com sucesso. Módulo de IA ativado, Senhor.");
+        speak("Chave de API configurada com sucesso. Módulo de IA ativado, Senhor.");
+      } else {
+        localStorage.removeItem('jarvis_gemini_key');
+        apiKey = '';
+        keyStatus.textContent = "Modo atual: Respostas locais (Sem API Key)";
+        keyStatus.className = "text-[10px] text-cyan-400/80 italic";
+      }
+    }
+
+    function checkApiKey() {
+      if (apiKey) {
+        apiKeyInput.value = apiKey;
+        keyStatus.textContent = "Modo atual: Conectado à API Gemini";
+        keyStatus.className = "text-[10px] text-green-400 font-semibold";
+      }
+    }
+
+    // Speech Recognition Setup (Web Speech API)
+    function setupSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        statusBadge.textContent = "VOZ NÃO SUPORTADA";
+        statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-hud bg-red-950/80 border border-red-500/40 text-red-400";
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'pt-BR';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = function() {
+        isListening = true;
+        statusBadge.textContent = "ESCUTANDO...";
+        statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-hud bg-cyan-500/20 border border-cyan-400 text-cyan-300 animate-pulse";
+        reactorIcon.className = "fa-solid fa-ear-listen text-2xl sm:text-3xl text-cyan-200 animate-pulse";
+      };
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        userInput.value = transcript;
+        processQuery(transcript);
+      };
+
+      recognition.onerror = function(event) {
+        console.error("Erro no reconhecimento de voz:", event.error);
+        stopListening();
+        updateStatus("SISTEMA PRONTO", "cyan");
+      };
+
+      recognition.onend = function() {
+        stopListening();
+      };
+    }
+
+    function toggleListening() {
+      if (!recognition) {
+        alert("O seu navegador no celular não suporta reconhecimento de voz diretamente.");
+        return;
+      }
+
+      if (isListening) {
+        recognition.stop();
+        stopListening();
+      } else {
+        try {
+          recognition.start();
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+    }
+
+    function stopListening() {
+      isListening = false;
+      reactorIcon.className = "fa-solid fa-microphone text-2xl sm:text-3xl text-cyan-300";
+      if (!isSpeaking) {
+        updateStatus("SISTEMA PRONTO", "cyan");
+      }
+    }
+
+    // Text & Command Handler
+    function handleUserSubmit(e) {
+      e.preventDefault();
+      const query = userInput.value.trim();
+      if (!query) return;
+
+      userInput.value = '';
+      processQuery(query);
+    }
+
+    async function processQuery(query) {
+      addMessage("Você", query, true);
+
+      updateStatus("PROCESSANDO...", "gold");
+
+      if (apiKey) {
+        // Advanced Mode: Gemini API
+        await callGeminiApi(query);
+      } else {
+        // Local Mode: Fallback Offline Intelligence
+        setTimeout(() => {
+          const reply = getLocalResponse(query);
+          addMessage("J.A.R.V.I.S.", reply);
+          speak(reply);
+        }, 500);
+      }
+    }
+
+    // Call Gemini API (gemini-3-flash-preview)
+    async function callGeminiApi(userPrompt) {
+      const systemInstruction = "Você é J.A.R.V.I.S., o assistente de inteligência artificial de Tony Stark (Homem de Ferro). Responda sempre em português (pt-BR) de forma elegante, culta, solícita e levemente sarcástica quando apropriado, tratando o usuário como 'Senhor' ou 'Sir'. Mantenha as respostas concisas para facilitar a leitura no celular e síntese de voz.";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: [{ parts: [{ text: userPrompt }] }],
+        systemInstruction: { parts: [{ text: systemInstruction }] }
+      };
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "Desculpe, Senhor. Ocorreu uma falha no processamento da resposta.";
+        
+        addMessage("J.A.R.V.I.S.", textResponse);
+        speak(textResponse);
+
+      } catch (error) {
+        console.error("Erro na chamada Gemini:", error);
+        const fallbackText = "Senhor, encontrei uma falha de comunicação com os servidores principais. Retornando ao protocolo local.";
+        addMessage("J.A.R.V.I.S.", fallbackText);
+        speak(fallbackText);
+      }
+    }
+
+    // Local Protocol Answers (No API required)
+    function getLocalResponse(input) {
+      const text = input.toLowerCase();
+
+      if (text.includes("quem é você") || text.includes("seu nome")) {
+        return "Sou J.A.R.V.I.S., seu assistente pessoal virtual. Como posso ajudar nas operações hoje, Senhor?";
+      }
+      if (text.includes("horas") || text.includes("que horas são")) {
+        return `Agora são exatamente ${new Date().toLocaleTimeString('pt-BR')}, Senhor.`;
+      }
+      if (text.includes("data") || text.includes("que dia é hoje")) {
+        return `Hoje é dia ${new Date().toLocaleDateString('pt-BR')}, Senhor.`;
+      }
+      if (text.includes("protocolo") || text.includes("status")) {
+        return "Todos os reatores Arc operando a 100%. Protocolo de defesa ativado e estável.";
+      }
+      if (text.includes("olá") || text.includes("oi") || text.includes("jarvis")) {
+        return "À sua disposição, Senhor. O que deseja?";
+      }
+      if (text.includes("homem de ferro") || text.includes("stark")) {
+        return "O Sr. Stark provavelmente está na oficina trabalhando em uma nova armadura.";
+      }
+
+      return "Comando recebido, Senhor. Para respostas ilimitadas e raciocínio avançado, recomendo cadastrar sua chave Gemini no painel de configurações abaixo.";
+    }
+
+    // Speech Synthesis Output (pt-BR)
+    function speak(text) {
+      if (!synth) return;
+
+      // Cancel ongoing speech
+      synth.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'pt-BR';
+      utterance.rate = 1.0;
+      utterance.pitch = 0.9; // Lower pitch for a calm, AI tone
+
+      // Try selecting a male or portuguese voice if available
+      const voices = synth.getVoices();
+      const ptVoice = voices.find(v => v.lang.includes('pt') && (v.name.includes('Google') || v.name.includes('Luciana') || v.name.includes('Daniel') || v.name.includes('Felipe')));
+      if (ptVoice) {
+        utterance.voice = ptVoice;
+      }
+
+      utterance.onstart = function() {
+        isSpeaking = true;
+        reactorCore.classList.add('speaking');
+        updateStatus("FALANDO...", "gold");
+      };
+
+      utterance.onend = function() {
+        isSpeaking = false;
+        reactorCore.classList.remove('speaking');
+        updateStatus("SISTEMA PRONTO", "cyan");
+      };
+
+      utterance.onerror = function() {
+        isSpeaking = false;
+        reactorCore.classList.remove('speaking');
+        updateStatus("SISTEMA PRONTO", "cyan");
+      };
+
+      synth.speak(utterance);
+    }
+
+    // UI Helper Functions
+    function addMessage(sender, text, isUser = false) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = isUser 
+        ? "bg-slate-900/80 border border-slate-700 rounded p-2 text-slate-200 text-xs sm:text-sm text-right"
+        : "bg-cyan-950/40 border border-cyan-500/20 rounded p-2 text-cyan-200 text-xs sm:text-sm";
+
+      msgDiv.innerHTML = `<span class="font-hud font-bold ${isUser ? 'text-amber-400' : 'text-cyan-400'}">${sender}:</span> ${escapeHtml(text)}`;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function clearChat() {
+      chatBox.innerHTML = '';
+      addMessag
